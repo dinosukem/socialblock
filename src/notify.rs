@@ -9,3 +9,9 @@ impl ConsoleNotifier {
         println!("[INFO] {msg}");
     }
 }
+
+impl Default for ConsoleNotifier {
+    fn default() -> Self {
+        Self::new()
+    }
+}

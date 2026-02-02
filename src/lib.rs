@@ -53,11 +53,12 @@ impl<B: Blocker> SocialBlockApp<B> {
         let mut out = vec![];
 
         if let Some(meta) = &cfg.meta {
-            for g in [&meta.facebook, &meta.instagram, &meta.whatsapp] {
-                if let Some(group) = g {
-                    for d in &group.domains {
-                        out.extend(self.expander.expand(d));
-                    }
+            for group in [&meta.facebook, &meta.instagram, &meta.whatsapp]
+                .into_iter()
+                .flatten()
+            {
+                for d in &group.domains {
+                    out.extend(self.expander.expand(d));
                 }
             }
         }
@@ -80,9 +81,7 @@ impl<B: Blocker> SocialBlockApp<B> {
     }
 
     pub fn unblock_only(&self) -> anyhow::Result<()> {
-        let cfg = self.loader.load()?;
-        let domains = self.collect_domains(&cfg);
-        self.blocker.unblock(&domains)?;
+        self.blocker.unblock()?;
         self.notifier.info("Unblocked domains");
         Ok(())
     }

@@ -1,5 +1,5 @@
 use {
-    super::{Blocker, HOSTS},
+    super::{Blocker, HOSTS_FILE, MARKER},
     std::fs,
 };
 
@@ -11,31 +11,38 @@ impl HostsBlocker {
     }
 }
 
+impl Default for HostsBlocker {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Blocker for HostsBlocker {
     fn block(&self, domains: &[String]) -> anyhow::Result<()> {
-        let mut content = fs::read_to_string(HOSTS)?;
+        let mut content = fs::read_to_string(HOSTS_FILE)?;
 
         for d in domains {
-            let line = format!("127.0.0.1 {d}");
-            if !content.contains(&line) {
+            let line = format!("127.0.0.1 {d} {MARKER}");
+            if !content.lines().any(|l| l.trim() == line) {
                 content.push('\n');
                 content.push_str(&line);
             }
         }
 
-        fs::write(HOSTS, content)?;
+        fs::write(HOSTS_FILE, content)?;
         Ok(())
     }
 
-    fn unblock(&self, domains: &[String]) -> anyhow::Result<()> {
-        let content = fs::read_to_string(HOSTS)?;
-        let filtered: String = content
+    fn unblock(&self) -> anyhow::Result<()> {
+        let content = fs::read_to_string(HOSTS_FILE)?;
+
+        let cleaned: String = content
             .lines()
-            .filter(|l| !domains.iter().any(|d| l.contains(d)))
+            .filter(|l| !l.contains(MARKER))
             .map(|l| format!("{l}\n"))
             .collect();
 
-        fs::write(HOSTS, filtered)?;
+        fs::write(HOSTS_FILE, cleaned)?;
         Ok(())
     }
 }

@@ -24,3 +24,9 @@ impl DomainExpander {
         out
     }
 }
+
+impl Default for DomainExpander {
+    fn default() -> Self {
+        Self::new()
+    }
+}
