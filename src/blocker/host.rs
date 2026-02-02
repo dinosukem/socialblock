@@ -39,8 +39,8 @@ impl Blocker for HostsBlocker {
         let cleaned: String = content
             .lines()
             .filter(|l| !l.contains(MARKER))
-            .map(|l| format!("{l}\n"))
-            .collect();
+            .collect::<Vec<_>>()
+            .join("\n");
 
         fs::write(HOSTS_FILE, cleaned)?;
         Ok(())

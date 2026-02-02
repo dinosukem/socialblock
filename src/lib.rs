@@ -5,7 +5,7 @@ pub mod domain;
 pub mod notify;
 pub mod scheduler;
 
-pub const LOADER_CONFIG_PATH: &str = "./socialblock.toml";
+pub const LOADER_CONFIG_PATH: &str = "socialblock.toml";
 // pub const LOADER_CONFIG_PATH: &str = "/etc/socialblock.toml";
 
 use crate::{
@@ -24,7 +24,7 @@ pub struct SocialBlockApp<B: Blocker> {
     notifier: ConsoleNotifier,
 }
 
-impl<B: Blocker> SocialBlockApp<B> {
+impl<B: Blocker + 'static> SocialBlockApp<B> {
     pub fn new(blocker: B, loader: ConfigLoader) -> Self {
         Self {
             blocker,
@@ -39,6 +39,7 @@ impl<B: Blocker> SocialBlockApp<B> {
         let cfg = self.loader.load()?;
         let domains = self.collect_domains(&cfg);
 
+        self.blocker.unblock()?;
         self.blocker.block(&domains)?;
 
         // if let Some(s) = &cfg.schedule {
@@ -53,9 +54,14 @@ impl<B: Blocker> SocialBlockApp<B> {
         let mut out = vec![];
 
         if let Some(meta) = &cfg.meta {
-            for group in [&meta.facebook, &meta.instagram, &meta.whatsapp]
-                .into_iter()
-                .flatten()
+            for group in [
+                &meta.facebook,
+                &meta.instagram,
+                &meta.whatsapp,
+                &meta.messenger,
+            ]
+            .into_iter()
+            .flatten()
             {
                 for d in &group.domains {
                     out.extend(self.expander.expand(d));
@@ -95,17 +101,23 @@ impl<B: Blocker> SocialBlockApp<B> {
     //     Ok(())
     // }
 
-    pub fn watch(&self) -> anyhow::Result<()> {
+    pub fn watch(self: &std::sync::Arc<Self>) -> anyhow::Result<()> {
         let path = self.loader.path().to_string();
 
         self.notifier.info("Watching config changes...");
 
-        crate::config::watcher::ConfigWatcher::watch(&path, || {
+        let app = std::sync::Arc::clone(self);
+
+        crate::config::watcher::ConfigWatcher::watch(&path, move || {
             println!("Config changed → re-applying...");
+            if let Err(e) = app.apply() {
+                eprintln!("Error re-applying: {}", e);
+            }
         })?;
 
+        // Keep the main thread alive indefinitely
         loop {
-            std::thread::sleep(std::time::Duration::from_secs(60));
+            std::thread::sleep(std::time::Duration::from_secs(3600));
         }
     }
 }

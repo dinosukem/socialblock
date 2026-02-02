@@ -13,17 +13,17 @@ fn main() -> anyhow::Result<()> {
 
     let loader = ConfigLoader::new(&cli.config);
 
-    let app = SocialBlockApp::new(
+    let app = std::sync::Arc::new(SocialBlockApp::new(
         HostsBlocker::new(),
         loader,
         // SystemdScheduler::new(std::env::current_exe()?.display().to_string()),
-    );
+    ));
 
     match cli.command {
         Command::Apply => app.apply(),
         Command::Block => app.block_only(),
         Command::Unblock => app.unblock_only(),
-        Command::Watch => app.watch(),
+        Command::Watch => std::sync::Arc::clone(&app).watch(),
         // Command::InstallSystemd => app.install_systemd(),
     }
 }
