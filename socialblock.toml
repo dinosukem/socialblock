@@ -1,0 +1,29 @@
+[meta.facebook]
+domains = [
+  "facebook.com",
+  "*.facebook.com",
+]
+
+[meta.instagram]
+domains = [
+  "instagram.com",
+  "*.instagram.com",
+]
+
+[meta.messenger]
+domains = [
+  "messenger.com",
+  "*.messenger.com",
+]
+
+[tiktok]
+domains = [
+  "tiktok.com",
+  "*.tiktok.com",
+  "*.tiktokcdn.com",
+]
+
+[schedule]
+enable = true
+block = "Mon..Fri 08:00"
+unblock = "Mon..Fri 18:00"
