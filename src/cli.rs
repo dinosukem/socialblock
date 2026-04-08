@@ -21,17 +21,16 @@ pub struct Cli {
 
 #[derive(Subcommand)]
 pub enum Command {
-    /// Apply config: block domains + apply schedule
-    Apply,
-
+    // /// Apply config: block domains + apply schedule
+    // Apply,
     /// Block immediately
     Block,
 
     /// Unblock immediately
     Unblock,
+    // /// Watch config and auto reload
+    // Watch,
 
-    /// Watch config and auto reload
-    Watch,
     // /// Generate & install systemd service + timer
     // InstallSystemd,
 }

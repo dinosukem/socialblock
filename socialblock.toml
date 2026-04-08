@@ -10,6 +10,12 @@ domains = [
   "*.instagram.com",
 ]
 
+# [meta.messenger]
+# domains = [
+#   "messenger.com",
+#   "*.messenger.com",
+# ]
+
 [tiktok]
 domains = [
   "tiktok.com",

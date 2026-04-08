@@ -24,5 +24,5 @@ pub struct Schedule {
 pub struct Config {
     pub meta: Option<Meta>,
     pub tiktok: Option<DomainGroup>,
-    // pub schedule: Option<Schedule>,
+    pub schedule: Option<Schedule>,
 }

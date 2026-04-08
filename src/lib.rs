@@ -5,7 +5,7 @@ pub mod domain;
 pub mod notify;
 pub mod scheduler;
 
-pub const LOADER_CONFIG_PATH: &str = "socialblock.toml";
+pub const LOADER_CONFIG_PATH: &str = "/apps/social-block/socialblock.toml";
 // pub const LOADER_CONFIG_PATH: &str = "/etc/socialblock.toml";
 
 use crate::{
@@ -13,22 +13,22 @@ use crate::{
     config::{Config, loader::ConfigLoader},
     domain::DomainExpander,
     notify::ConsoleNotifier,
-    // scheduler::Scheduler,
+    scheduler::Scheduler,
 };
 
-pub struct SocialBlockApp<B: Blocker> {
+pub struct SocialBlockApp<B: Blocker, S: Scheduler> {
     blocker: B,
-    // scheduler: S,
+    scheduler: S,
     loader: ConfigLoader,
     expander: DomainExpander,
     notifier: ConsoleNotifier,
 }
 
-impl<B: Blocker + 'static> SocialBlockApp<B> {
-    pub fn new(blocker: B, loader: ConfigLoader) -> Self {
+impl<B: Blocker + 'static, S: Scheduler + 'static> SocialBlockApp<B, S> {
+    pub fn new(blocker: B, loader: ConfigLoader, scheduler: S) -> Self {
         Self {
             blocker,
-            // scheduler,
+            scheduler,
             loader,
             expander: DomainExpander::new(),
             notifier: ConsoleNotifier::new(),
@@ -42,9 +42,9 @@ impl<B: Blocker + 'static> SocialBlockApp<B> {
         self.blocker.unblock()?;
         self.blocker.block(&domains)?;
 
-        // if let Some(s) = &cfg.schedule {
-        //     self.scheduler.apply(s)?;
-        // }
+        if let Some(s) = &cfg.schedule {
+            self.scheduler.apply(s)?;
+        }
 
         self.notifier.info("Config applied successfully");
         Ok(())
@@ -92,14 +92,14 @@ impl<B: Blocker + 'static> SocialBlockApp<B> {
         Ok(())
     }
 
-    // pub fn install_systemd(&self) -> anyhow::Result<()> {
-    //     let cfg = self.loader.load()?;
-    //     if let Some(s) = &cfg.schedule {
-    //         self.scheduler.apply(s)?;
-    //         self.notifier.info("Systemd timer installed");
-    //     }
-    //     Ok(())
-    // }
+    pub fn install_systemd(&self) -> anyhow::Result<()> {
+        let cfg = self.loader.load()?;
+        if let Some(s) = &cfg.schedule {
+            self.scheduler.apply(s)?;
+            self.notifier.info("Systemd timer installed");
+        }
+        Ok(())
+    }
 
     pub fn watch(self: &std::sync::Arc<Self>) -> anyhow::Result<()> {
         let path = self.loader.path().to_string();
