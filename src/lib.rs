@@ -5,7 +5,7 @@ pub mod domain;
 pub mod notify;
 pub mod scheduler;
 
-pub const LOADER_CONFIG_PATH: &str = "/apps/social-block/socialblock.toml";
+pub const LOADER_CONFIG_PATH: &str = "/etc/socialblock-host/socialblock.toml";
 // pub const LOADER_CONFIG_PATH: &str = "/etc/socialblock.toml";
 
 use crate::{
